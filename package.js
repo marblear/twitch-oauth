@@ -14,10 +14,12 @@ Package.onUse(function(api) {
   api.use('oauth2', ['client', 'server']);
   api.use('oauth', ['client', 'server']);
   api.use('fetch', ['server']);
+  api.use('webapp', ['server']);
   api.use(['service-configuration'], ['client', 'server']);
   api.use(['random'], 'client');
 
   api.addFiles('twitch.server.ts', 'server');
+  api.addFiles('twitch.endpoint.ts', 'server');
   api.addFiles('twitch.client.ts', 'client');
   api.addFiles('TwitchOAuth.ts');
 

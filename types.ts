@@ -1,4 +1,16 @@
-export type Query = Record<string, string>;
+export interface TwitchOAuthQuery {
+  scope: string;
+  code: string;
+}
+
+export interface TwitchOAuthTokenResponse {
+  access_token: string;
+  id_token: string;
+  refresh_token: string;
+  expires_in: number;
+  scope: string[];
+  token_type: 'bearer';
+}
 
 export interface OAuthCredential {
   _id: string;
@@ -13,6 +25,7 @@ export type LoginStyle = 'popup' | 'redirect';
 export interface LoginOptions {
   loginStyle: LoginStyle;
 }
+
 export type RequestCredentialCallback = () => void;
 
 export interface TwitchOAuthInterface {
@@ -50,7 +63,7 @@ export interface LaunchLoginOptions {
 }
 
 declare const OAuth: {
-  registerService: (type: string, oAuthVersion: number, oAuth1Urls: string | null, callback: (query: Query) => void) => RegisterServiceResult
+  registerService: (type: string, oAuthVersion: number, oAuth1Urls: string | null, callback: (query: TwitchOAuthQuery) => void) => RegisterServiceResult
   _loginStyle: (service: string, config: TwitchServiceConfiguration, options: LoginOptions) => string
   launchLogin: (options: LaunchLoginOptions) => void
 };

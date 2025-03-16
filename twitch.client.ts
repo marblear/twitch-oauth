@@ -13,22 +13,21 @@ TwitchOAuth.requestCredential = async (options, callback) => {
 
   const credentialToken = Random.secret();
 
-  // var url = "https://id.twitch.tv/oauth2/authorize?client_id=" + _settings.clientId +
-  //   "&redirect_uri=" + redirectUri + "&response_type=token&scope=chat:read%20chat:edit";
-
   const { clientId, redirectUri } = config;
 
-  const scope = config.scopes ? config.scopes.join('%20') : '';
+  const scopes: string[] = config.scopes || [];
+  scopes.push('openid');
+  const scope = scopes.join('+');
 
   const loginOptions = {
     loginService: 'twitch',
     loginStyle: OAuth._loginStyle('twitch', config, options),
-    loginUrl: `${endpoint}?client_id=${clientId}&response_type=token&scope=${scope}&redirect_uri=${encodeURIComponent(redirectUri)}`,
+    loginUrl: `${endpoint}?client_id=${clientId}&response_type=code&scope=${scope}&redirect_uri=${encodeURIComponent(redirectUri)}`,
     credentialRequestCompleteCallback: callback,
     credentialToken,
     popupOptions: { width: 800, height: 600 }
   };
-  // console.log({ config, loginOptions, callback });
+  // console.log(loginOptions);
   OAuth.launchLogin(loginOptions);
 };
 
