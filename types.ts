@@ -54,7 +54,7 @@ export interface LoginOptions {
 export type RequestCredentialCallback = () => void;
 
 export interface TwitchOAuthInterface {
-  requestCredential?(options: LoginOptions, callback: RequestCredentialCallback): Promise<void>;
+  requestCredential?(options: LoginOptions | null, callback: RequestCredentialCallback): Promise<void>;
 
   retrieveCredential?(credentialToken: string, credentialSecret: string): OAuthCredential;
 
