@@ -62,10 +62,13 @@ export interface LaunchLoginOptions {
   popupOptions: { width: number; height: number };
 }
 
+type Base64EncodedState = string;
+
 declare const OAuth: {
   registerService: (type: string, oAuthVersion: number, oAuth1Urls: string | null, callback: (query: TwitchOAuthQuery) => void) => RegisterServiceResult
   _loginStyle: (service: string, config: TwitchServiceConfiguration, options: LoginOptions) => string
   launchLogin: (options: LaunchLoginOptions) => void
+  _generateState: (loginStyle: string, credentialToken: string, redirectUrl: string) => Base64EncodedState
 };
 
 export { OAuth };
