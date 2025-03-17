@@ -19,15 +19,20 @@ TwitchOAuth.requestCredential = async (options, callback) => {
   scopes.push('openid');
   const scope = scopes.join('+');
 
+  const state = window.btoa(JSON.stringify({
+    loginStyle: OAuth._loginStyle('twitch', config, options),
+    credentialToken,
+    redirectUrl: config.redirectUri
+  }));
+
   const loginOptions = {
     loginService: 'twitch',
     loginStyle: OAuth._loginStyle('twitch', config, options),
-    loginUrl: `${endpoint}?client_id=${clientId}&response_type=code&scope=${scope}&redirect_uri=${encodeURIComponent(redirectUri)}`,
+    loginUrl: `${endpoint}?client_id=${clientId}&response_type=code&scope=${scope}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`,
     credentialRequestCompleteCallback: callback,
     credentialToken,
     popupOptions: { width: 800, height: 600 }
   };
-  // console.log(loginOptions);
   OAuth.launchLogin(loginOptions);
 };
 
