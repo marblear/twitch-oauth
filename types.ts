@@ -12,6 +12,31 @@ export interface TwitchOAuthTokenResponse {
   token_type: 'bearer';
 }
 
+export interface TwitchJWTIdentity {
+  aud: string;
+  exp: number;
+  iat: number;
+  iss: string;
+  sub: string;
+  email: string;
+  email_verified: boolean;
+  picture: string;
+  updated_at: string;
+  preferred_username: string;
+}
+
+export interface TwitchIdentity {
+  id: string;
+  clientId: string;
+  username: string;
+  issuer: string;
+  email: string;
+  emailVerified: boolean;
+  picture: string;
+  expiresAt: number;
+  updatedAt: string;
+}
+
 export interface OAuthCredential {
   _id: string;
   key: string;

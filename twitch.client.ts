@@ -25,10 +25,22 @@ TwitchOAuth.requestCredential = async (options, callback) => {
     redirectUrl: config.redirectUri
   }));
 
+  const claims = {
+    email: null,
+    email_verified: null,
+    picture: null,
+    preferred_username: null,
+    updated_at: null
+  };
+  const encodedClaims = encodeURIComponent(JSON.stringify({
+    id_token: claims,
+    userinfo: claims
+  }));
+
   const loginOptions = {
     loginService: 'twitch',
     loginStyle: OAuth._loginStyle('twitch', config, options),
-    loginUrl: `${endpoint}?client_id=${clientId}&response_type=code&scope=${scope}&state=${state}&redirect_uri=${encodeURIComponent(redirectUri)}`,
+    loginUrl: `${endpoint}?client_id=${clientId}&response_type=code&scope=${scope}&state=${state}&claims=${encodedClaims}&redirect_uri=${encodeURIComponent(redirectUri)}`,
     credentialRequestCompleteCallback: callback,
     credentialToken,
     popupOptions: { width: 800, height: 600 }
