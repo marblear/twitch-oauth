@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { WebApp } from 'meteor/webapp';
-import { getAccessToken } from './twitch.server';
-import { TwitchOAuthQuery } from './types';
+import { getTwitchOAuthTokenResponse } from './twitch.server';
+import { OAuth, TwitchOAuthQuery } from './types';
 
 WebApp.connectHandlers.use('/_oauth_twitch', async (req, res) => {
   const error = (status: number, message: string) => {
@@ -15,27 +15,38 @@ WebApp.connectHandlers.use('/_oauth_twitch', async (req, res) => {
     const { scope, code } = query;
     console.log({ scope, code });
 
-    const tokenResponse = await getAccessToken(query);
+    const { tokenResponse, config } = await getTwitchOAuthTokenResponse(query);
     console.log(tokenResponse);
 
-    // Apple.config = await ServiceConfiguration.configurations.findOneAsync({ service: 'apple' });
-    // // set native=true to use the app identifier associated with the signin service
-    // const parsedToken = await Apple.verifyAndParseIdentityToken(
-    //   { appId: clientName }, // TODO: get the client from the URL
-    //   token,
-    //   true
-    // );
-    // const event = JSON.parse(parsedToken.events);
-    // const { type, sub: appleUserId } = event;
-    // switch (type) {
-    //   case 'consent-revoked':
-    //   case 'account-delete':
-    //     Meteor.defer(() => void removeServiceUser(appleUserId));
-    //     break;
-    // }
-    const json = JSON.stringify({ status: 200, message: 'OK' });
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(json);
+    const state = OAuth._generateState(
+      'redirect',
+      tokenResponse.access_token,
+      Meteor.absoluteUrl()
+    );
+
+    console.log({ state });
+
+    const url = Meteor.absoluteUrl('_oauth/twitch');
+    const redirectUrl = `${url}?state=${state}`;
+
+    res.writeHead(302, { 'Location': redirectUrl });
+    res.end();
+
+    // const response = await fetch(`${url}?state=${state}`, {
+    //   method: 'GET',
+    //   headers: new Headers({
+    //     'Content-Type': 'text/html'
+    //   })
+    // });
+
+    // console.log('Response from /_oauth/twitch:');
+    // console.log(response.status);
+    // console.log(response);
+    // console.log(await response.json());
+
+    // const html = await response.text();
+    // res.writeHead(200, { 'Content-Type': 'text/html' });
+    // res.end(html);
   } catch (e) {
     console.log('Error in Twitch OAuth handler:');
     console.log(e);
