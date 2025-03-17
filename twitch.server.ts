@@ -75,8 +75,6 @@ OAuth.registerService('twitch', 2, null, async query => {
   return result;
 });
 
-console.log('registerLoginHandler');
-
 Accounts.registerLoginHandler(async query => {
   console.log('registerLoginHandler');
   console.log({ query });
