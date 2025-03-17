@@ -1,4 +1,3 @@
-import { Accounts } from 'meteor/accounts-base';
 import { fetch, Headers } from 'meteor/fetch';
 import { Meteor } from 'meteor/meteor';
 import TwitchOAuth from './TwitchOAuth';
@@ -82,16 +81,14 @@ OAuth.registerService('twitch', 2, null, async query => {
     expiresAt: (+new Date) + (1000 * response.expiresIn)
   };
 
-  const result = {
+  return {
     serviceData,
     options: { username: identity.username, profile: { firstName: identity.username, avatar: identity.picture } }
   };
-  console.log(result);
-  return result;
 });
 
-Accounts.registerLoginHandler(async query => {
-  console.log('registerLoginHandler');
-  console.log({ query });
-  return undefined;
-});
+// Accounts.registerLoginHandler(async query => {
+//   console.log('registerLoginHandler');
+//   console.log({ query });
+//   return undefined;
+// });
