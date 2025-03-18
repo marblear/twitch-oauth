@@ -42,6 +42,7 @@ export const getTokenResponse = async (config: TwitchServiceConfiguration, query
 };
 
 const getIdentity = (identityToken: string) => {
+  if (!identityToken) throw new Meteor.Error(403, 'No identity token');
   const identity = JSON.parse(Buffer.from(identityToken.split('.')[1], 'base64').toString()) as TwitchJWTIdentity;
   return {
     id: identity.sub,
