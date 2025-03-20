@@ -35,7 +35,7 @@ export const getTokenResponse = async (config: TwitchServiceConfiguration, query
     accessToken: json.access_token,
     identityToken: json.id_token,
     refreshToken: json.refresh_token,
-    scopes: json.scope,
+    scope: json.scope,
     expiresIn: json.expires_in,
     tokenType: json.token_type
   };
@@ -79,6 +79,7 @@ OAuth.registerService('twitch', 2, null, async query => {
     accessToken,
     identityToken,
     refreshToken,
+    scope: response.scope,
     expiresAt: (+new Date) + (1000 * response.expiresIn)
   };
 
