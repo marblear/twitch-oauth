@@ -53,10 +53,26 @@ export interface LoginOptions {
 
 export type RequestCredentialCallback = () => void;
 
+export interface UserAuthTokenRefreshResponse {
+  access_token: string;
+  expires_in: number;
+  refresh_token: string;
+  scope: string[];
+  token_type: 'bearer';
+}
+
+export interface UserAccessTokenResult {
+  accessToken: string;
+  scope: string[];
+  expiresAt: number;
+}
+
 export interface TwitchOAuthInterface {
   requestCredential?(options: LoginOptions | null, callback: RequestCredentialCallback): Promise<void>;
 
   retrieveCredential?(credentialToken: string, credentialSecret: string): OAuthCredential;
+
+  getUserAccessToken?(minimumTokenDuration?: number): Promise<UserAccessTokenResult>;
 
   whitelistedFields?: string[];
 }
@@ -69,8 +85,20 @@ export interface TwitchServiceConfiguration {
 }
 
 export interface TwitchUserServiceData {
+  id: string;
+  username: string;
+  email: string;
+  emailVerified: boolean;
   accessToken: string;
-  scopes: string[];
+  identityToken: string;
+  refreshToken: string;
+  scope: string[];
+  expiresAt: number;
+}
+
+export interface TwitchUser {
+  _id: string;
+  services: { twitch: TwitchUserServiceData };
 }
 
 export interface RegisterServiceResult {

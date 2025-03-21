@@ -7,11 +7,16 @@ import {
   TwitchJWTIdentity,
   TwitchOAuthQuery,
   TwitchOAuthTokenResponse,
-  TwitchServiceConfiguration
+  TwitchServiceConfiguration,
+  TwitchUser,
+  TwitchUserServiceData,
+  UserAccessTokenResult,
+  UserAuthTokenRefreshResponse
 } from './types';
 
 const tokenEndpoint = 'https://id.twitch.tv/oauth2/token';
 const expectedIssuer = 'https://id.twitch.tv/oauth2';
+const defaultMinimumAccessTokenDuration = 1000 * 60 * 60; // 1 hour
 
 TwitchOAuth.whitelistedFields = ['email'];
 
@@ -24,7 +29,7 @@ export const getTokenResponse = async (config: TwitchServiceConfiguration, query
     }),
     body: new URLSearchParams({
       'client_id': clientId,
-      'client_secret': secret,
+      'client_secret': secret ?? '',
       'code': query.code,
       'grant_type': 'authorization_code',
       'redirect_uri': redirectUri
@@ -62,6 +67,72 @@ const verifyIdentity = (config: TwitchServiceConfiguration, identity: TwitchIden
   if (identity.clientId !== config.clientId) throw new Meteor.Error(403, 'Client ID mismatch');
 };
 
+const getUserAccessToken = async (minimumTokenDuration = defaultMinimumAccessTokenDuration) => {
+  const userId = Meteor.userId();
+  if (!userId) throw new Meteor.Error(403, 'Not logged in');
+  const user = await Meteor.users.findOneAsync({
+    _id: userId,
+    'services.twitch': { $exists: true }
+  }, { fields: { 'services.twitch': 1 } }) as unknown as TwitchUser;
+  if (!user) throw new Meteor.Error(403, 'User not found');
+
+  const { accessToken, scope, expiresAt } = user.services.twitch;
+
+  if (expiresAt < (+new Date) + minimumTokenDuration) {
+    return refreshUserAccessToken(user);
+  }
+
+  return {
+    accessToken,
+    scope,
+    expiresAt
+  };
+};
+
+const refreshUserAccessToken = async (user: TwitchUser): Promise<UserAccessTokenResult> => {
+  const config = (await ServiceConfiguration.configurations.findOneAsync({ service: 'twitch' })) as unknown as TwitchServiceConfiguration;
+  if (!config) throw new Meteor.Error(403, 'No Twitch service configuration');
+  const { clientId, secret } = config;
+
+  const userId = user._id;
+  const refreshToken = user.services?.twitch?.refreshToken;
+
+  const response = await fetch(tokenEndpoint, {
+    method: 'POST',
+    headers: new Headers({
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }),
+    body: new URLSearchParams({
+      'client_id': clientId,
+      'client_secret': secret ?? '',
+      'grant_type': 'refresh_token',
+      'refresh_token': refreshToken
+    })
+  });
+  const json = await response.json() as UserAuthTokenRefreshResponse;
+
+  const result: UserAccessTokenResult = {
+    accessToken: json.access_token,
+    scope: json.scope,
+    expiresAt: (+new Date) + (1000 * json.expires_in)
+  };
+
+  const serviceData: Partial<TwitchUserServiceData> = {
+    ...result,
+    refreshToken: json.refresh_token
+  };
+  const $set = {
+    'services.twitch.accessToken': serviceData.accessToken,
+    'services.twitch.refreshToken': serviceData.refreshToken,
+    'services.twitch.expiresAt': serviceData.expiresAt,
+    'services.twitch.scope': serviceData.scope
+  };
+
+  await Meteor.users.updateAsync({ _id: userId }, { $set });
+
+  return result;
+};
+
 OAuth.registerService('twitch', 2, null, async query => {
   const config = (await ServiceConfiguration.configurations.findOneAsync({ service: 'twitch' })) as unknown as TwitchServiceConfiguration;
   if (!config) throw new Meteor.Error(403, 'Twitch accounts service not configured');
@@ -71,7 +142,7 @@ OAuth.registerService('twitch', 2, null, async query => {
   const identity = getIdentity(identityToken);
   verifyIdentity(config, identity);
 
-  const serviceData = {
+  const serviceData: TwitchUserServiceData = {
     id: identity.id,
     username: identity.username,
     email: identity.email,
@@ -88,6 +159,9 @@ OAuth.registerService('twitch', 2, null, async query => {
     options: { username: identity.username, profile: { firstName: identity.username, avatar: identity.picture } }
   };
 });
+
+
+TwitchOAuth.getUserAccessToken = getUserAccessToken;
 
 // Accounts.registerLoginHandler(async query => {
 //   console.log('registerLoginHandler');
