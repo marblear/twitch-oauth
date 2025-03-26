@@ -22,7 +22,7 @@ TwitchOAuth.requestCredential = async (options, callback) => {
   const state = window.btoa(JSON.stringify({
     loginStyle: OAuth._loginStyle('twitch', config, options),
     credentialToken,
-    redirectUrl: config.redirectUri
+    redirectUrl: options?.redirectUrl ?? config.redirectUri
   }));
 
   const claims = {

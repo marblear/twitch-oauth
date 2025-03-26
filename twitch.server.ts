@@ -67,9 +67,8 @@ const verifyIdentity = (config: TwitchServiceConfiguration, identity: TwitchIden
   if (identity.clientId !== config.clientId) throw new Meteor.Error(403, 'Client ID mismatch');
 };
 
-const getUserAccessToken = async (minimumTokenDuration = defaultMinimumAccessTokenDuration) => {
-  const userId = Meteor.userId();
-  if (!userId) throw new Meteor.Error(403, 'Not logged in');
+const getUserAccessToken = async (userId: string, minimumTokenDuration: number = defaultMinimumAccessTokenDuration) => {
+  if (!userId) throw new Meteor.Error(403, 'User ID not provided');
   const user = await Meteor.users.findOneAsync({
     _id: userId,
     'services.twitch': { $exists: true }

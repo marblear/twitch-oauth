@@ -49,6 +49,7 @@ export type LoginStyle = 'popup' | 'redirect';
 
 export interface LoginOptions {
   loginStyle: LoginStyle;
+  redirectUrl?: string;
 }
 
 export type RequestCredentialCallback = () => void;
@@ -72,7 +73,7 @@ export interface TwitchOAuthInterface {
 
   retrieveCredential?(credentialToken: string, credentialSecret: string): OAuthCredential;
 
-  getUserAccessToken?(minimumTokenDuration?: number): Promise<UserAccessTokenResult>;
+  getUserAccessToken?(userId: string, minimumTokenDuration?: number): Promise<UserAccessTokenResult>;
 
   whitelistedFields?: string[];
 }
